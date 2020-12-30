@@ -1,0 +1,16 @@
+﻿TODO:
+- Tim           | Done | TODO communication and general I/O
+- Extra         | Done
+- Screen(class) | TODO(refresh option)
+- Screen(usage) | TODO(display map) (requires additional input thread)
+- NN            | Done
+- Game          | Half Done (missing game loop and I/O)
+
+Stage 2 TODO:
+- World Generation | Done (basic generation)
+- Neural I/O       | In Process 1 (D:)
+
+Future TODO:
+- Consol(class)
+- Consol(usage)
+- Error Handling
