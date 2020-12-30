@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Diagnostics;
 
 namespace TimWorld
@@ -41,8 +40,8 @@ namespace TimWorld
             WoodPickaxe  = 10,
             FarmFood     = 11,
             MetalPickaxe = 12,
-            WoodSword    = 13,
-            MetalSword   = 14
+            WoodWeapon   = 13,
+            MetalWeapon  = 14
         }
 
         public class Item
@@ -204,6 +203,32 @@ namespace TimWorld
             public static int FindIndex(List<FarmLand> farmLands, int X, int Y, int Z)
             {
                 return FindIndex(farmLands.ToArray(), X, Y, Z);
+            }
+        }
+
+        class Crafting // useless for now // TODO make work and good
+        {
+            public static Item Recipe(Item result)
+            {
+                switch ((byte)result.item)
+                {
+                    case 9: // Planks
+                        return new Item(ItemEnum.Tree, 1);
+
+                    case 10: // WoodPickaxe
+                        return new Item(ItemEnum.Planks, 2);
+
+                    case 12: // MetalPickaxe
+                        return new Item(ItemEnum.Metal, 2);
+
+                    case 13: // WoodWeapon
+                        return new Item(ItemEnum.Planks, 1);
+
+                    case 14: // MetalWeapon
+                        return new Item(ItemEnum.Metal, 1);
+                }
+
+                return new Item();
             }
         }
     }

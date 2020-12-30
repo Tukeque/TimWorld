@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TimWorld
 {
@@ -186,7 +184,7 @@ namespace TimWorld
             // switch statement
             switch (AI)
             {
-                case true: // attack // still has TODO // BIG BAD TODO remove blocks
+                case true: // attack // still has TODO
                     switch (Game.map[targetcoord[0], targetcoord[1], targetcoord[2]])
                     {
                         case (byte)Blocks.Block.Air: // TODO attack player
@@ -242,9 +240,11 @@ namespace TimWorld
                         case (byte)Blocks.Block.Water: // useless lol
                             break;
 
-                        case (byte)Blocks.Block.FarmLand: // TODO remove from farmLands
+                        case (byte)Blocks.Block.FarmLand:
                             Drop(new Items.Item(Items.ItemEnum.FarmLand, 1, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+
                             Game.map[targetcoord[0], targetcoord[1], targetcoord[2]] = (byte)Blocks.Block.Air;
+                            Game.farmLands.RemoveAt(Items.FarmLand.FindIndex(Game.farmLands, targetcoord[0], targetcoord[1], targetcoord[2]));
                             break;
 
                         case (byte)Blocks.Block.Planks:
@@ -286,7 +286,19 @@ namespace TimWorld
                             // place block
                             if (supported == true && (byte)armItem.item <= 9)
                             {
-                                Game.map[targetcoord[0], targetcoord[1], targetcoord[2]] = (byte)armItem.item; // TODO handle table, stack and farmLand
+                                Game.map[targetcoord[0], targetcoord[1], targetcoord[2]] = (byte)armItem.item;
+
+                                switch ((byte)armItem.item) // handle stack and farmLand
+                                {
+                                    case 6: // stack
+                                        Game.stacks.Add(new Items.Stack(new List<Items.Item>(), targetcoord[0], targetcoord[1], targetcoord[2]));
+                                        break;
+
+                                    case 8: // farmland
+                                        Game.farmLands.Add(new Items.FarmLand(targetcoord[0], targetcoord[1], targetcoord[2]));
+                                        break;
+                                }
+
                                 Use(ARM, 1); // use 1 item
                             }
                             
@@ -296,14 +308,14 @@ namespace TimWorld
                             break;
 
                         case (byte)Blocks.Block.Dirt: // try plant tree with FarmFood
-                            int X = x; int Y = y; int Z = z; // <<< vvv bad code but it works lMAO !
-                            x = targetcoord[0]; y = SpecialMath.Modulus(targetcoord[1] + 1, Game.MapHeight); z = targetcoord[2];
 
                             if (armItem.item == Items.ItemEnum.FarmFood)
                             {
                                 // plant tree
-                                if (Game.map[x, y, z] == 0) Game.map[x, y, z] = (byte)Blocks.Block.Tree; // trunk 1
-                                if (Game.map[x, SpecialMath.Modulus(y + 1, Game.MapHeight), z] == 0) Game.map[x, SpecialMath.Modulus(y + 1, Game.MapHeight), z] = (byte)Blocks.Block.Tree; // trunk 2
+                                if (Game.map[targetcoord[0], SpecialMath.Modulus(targetcoord[1] + 1, Game.MapHeight), targetcoord[2]] == 0) 
+                                    Game.map[targetcoord[0], SpecialMath.Modulus(targetcoord[1] + 1, Game.MapHeight), targetcoord[2]] = (byte)Blocks.Block.Tree; // trunk 1
+                                if (Game.map[targetcoord[0], SpecialMath.Modulus(targetcoord[1] + 2, Game.MapHeight), targetcoord[2]] == 0)
+                                    Game.map[targetcoord[0], SpecialMath.Modulus(targetcoord[1] + 2, Game.MapHeight), targetcoord[2]] = (byte)Blocks.Block.Tree; // trunk 2
 
                                 // leaf algo (:D)
                                 for (int i = 0; i < 3; i++)
@@ -312,21 +324,57 @@ namespace TimWorld
                                     {
                                         for (int k = 0; k < 3; k++)
                                         {
-                                            if (Game.map[SpecialMath.Modulus(x + i, Game.MapWidth), SpecialMath.Modulus(y + j, Game.MapHeight), SpecialMath.Modulus(z + k, Game.MapLength)] == 0) Game.map[SpecialMath.Modulus(x + i, Game.MapWidth), SpecialMath.Modulus(y + j, Game.MapHeight), SpecialMath.Modulus(z + k, Game.MapLength)] = (byte)Blocks.Block.Tree;
+                                            if (Game.map[SpecialMath.Modulus(targetcoord[0] + i, Game.MapWidth), SpecialMath.Modulus(targetcoord[1] + j + 1, Game.MapHeight), SpecialMath.Modulus(targetcoord[2] + k, Game.MapLength)] == 0)
+                                                Game.map[SpecialMath.Modulus(targetcoord[0] + i, Game.MapWidth), SpecialMath.Modulus(targetcoord[1] + j + 1, Game.MapHeight), SpecialMath.Modulus(targetcoord[2] + k, Game.MapLength)] = (byte)Blocks.Block.Tree;
                                         }
                                     }
                                 }
 
                                 Use(ARM, 1); // use 1 FarmFood
                             }
-
-                            x = X; y = Y; z = Z;
                             break;
 
                         case (byte)Blocks.Block.Tree: // useless lol
                             break;
 
-                        case (byte)Blocks.Block.Table: // TODO crafting with operand
+                        case (byte)Blocks.Block.Table: // crafting with operand
+                            switch (operand)
+                            {
+                                case 9: // Planks
+                                    if (armItem.item == Items.ItemEnum.Tree && armItem.count >= 1)
+                                    {
+                                        Use(ARM, 1); Drop(new Items.Item(Items.ItemEnum.Planks, 4, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+                                    }
+                                    break;
+
+                                case 10: // WoodPickaxe
+                                    if (armItem.item == Items.ItemEnum.Planks && armItem.count >= 2)
+                                    {
+                                        Use(ARM, 2); Drop(new Items.Item(Items.ItemEnum.WoodPickaxe, 1, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+                                    }
+                                    break;
+
+                                case 12: // MetalPickaxe
+                                    if (armItem.item == Items.ItemEnum.Metal && armItem.count >= 2)
+                                    {
+                                        Use(ARM, 2); Drop(new Items.Item(Items.ItemEnum.MetalPickaxe, 1, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+                                    }
+                                    break;
+
+                                case 13: // WoodWeapon
+                                    if (armItem.item == Items.ItemEnum.Planks && armItem.count >= 1)
+                                    {
+                                        Use(ARM, 1); Drop(new Items.Item(Items.ItemEnum.WoodWeapon, 1, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+                                    }
+                                    break;
+
+                                case 14: // MetalWeapon
+                                    if (armItem.item == Items.ItemEnum.Metal && armItem.count >= 1)
+                                    {
+                                        Use(ARM, 1); Drop(new Items.Item(Items.ItemEnum.MetalWeapon, 1, targetcoord[0], targetcoord[1], targetcoord[2]), targetcoord[0], targetcoord[1], targetcoord[2]);
+                                    }
+                                    break;
+                            }
                             break;
 
                         case (byte)Blocks.Block.Stack: // grabbing/inserting
@@ -345,7 +393,7 @@ namespace TimWorld
                         case (byte)Blocks.Block.Water: // useless lol
                             break;
 
-                        case (byte)Blocks.Block.FarmLand: // give FarmFood if enough time has passed
+                        case (byte)Blocks.Block.FarmLand: // give FarmFood if grown
                             Items.FarmLand farmLand = Items.FarmLand.Find(Game.farmLands, targetcoord[0], targetcoord[1], targetcoord[2]);
 
                             if (farmLand.grown == true)
@@ -366,6 +414,8 @@ namespace TimWorld
             // TODO Mouth
 
             //*movement: move_left, move_right, move_forward, move_backward, jump
+
+            // transform from relative to global
         }
 
         public void UpdateState()
