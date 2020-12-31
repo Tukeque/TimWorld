@@ -55,7 +55,7 @@ namespace TimWorld
             Screen.Init();
             Screen.Print("Hello, World!", 0, 0);
 
-            // TODO make input thread and get seed like that
+            // TODO make input thread and get seed like that (Consol)
             Extra.InitRandom(2359234);
 
             GenerateMap();

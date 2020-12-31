@@ -395,6 +395,33 @@ namespace TimWorld
             return coord;
         }
 
+        public static int[] MovementDirectionToCoordinate(Tim.DIR Dir)
+        {
+            // get coordinate offset based on a direction
+            int[] coord = new int[] { 0, 0, 0 };
+
+            switch (Dir)
+            {
+                case Tim.DIR.NORTH:
+                    coord[2] = 1;
+                    break;
+
+                case Tim.DIR.SOUTH:
+                    coord[2] = -1;
+                    break;
+
+                case Tim.DIR.EAST:
+                    coord[0] = 1;
+                    break;
+
+                case Tim.DIR.WEST:
+                    coord[0] = -1;
+                    break;
+            }
+
+            return coord;
+        }
+
         public static bool Chance(float chance)
         {
             float a = random.Next(0, 101);

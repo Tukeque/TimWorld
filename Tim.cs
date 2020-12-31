@@ -98,9 +98,12 @@ namespace TimWorld
         {
             int nPtr = 0;
             //*sensing: ear, 64*(4)eyes, 6*(4)hairs
+            // TODO ear
+
+            // vvv OPTIMIZE vvv still has TODO
             #region Hairs
             byte[] blockNeurons;
-            blockNeurons = SpecialMath.NibbleToNeurons(Game.map[SpecialMath.Modulus(x + 1, Game.MapWidth), y, z]); // TODO add index of player with offset
+            blockNeurons = SpecialMath.NibbleToNeurons(Game.map[SpecialMath.Modulus(x + 1, Game.MapWidth), y, z]); // TODO add index of player with offset (TODO implement dir)
             for (int i = 0; i < 4; i++)
             {
                 for (int j = 0; j < 4; j++) nn.neurons[nPtr + j].value = blockNeurons[j];
@@ -143,12 +146,11 @@ namespace TimWorld
             }
             #endregion
 
+            // vvv TODO
             #region Eyes
             #endregion
 
-            // TODO Ear
-
-            //*nn iteration
+            //*nn iteration (lol ez)
             nn.Iterate();
 
             //*interaction: turn_LR, turn_UD, arm1/arm2, attack/interact, operand, mouth
@@ -156,20 +158,20 @@ namespace TimWorld
             float turn_LR = nn.neurons[nPtr].value; nPtr++;
             float turn_UD = nn.neurons[nPtr].value; nPtr++;
 
-            dir = Extra.DirectionCycle(dir, true && turn_LR >= 0);
+            dir    = Extra.DirectionCycle(dir, true && turn_LR >= 0);
             subdir = Extra.SubDirectionCycle(subdir, true && turn_UD >= 0);
             #endregion
 
-            #region Interaction:CoordinateSelection
+            #region Interaction
+            // evaluate coord
             int[] coord = Extra.DirectionToCoordinate(dir, subdir);
             int[] timcoord = new int[] { x, y, z };
             int[] limits = new int[] { Game.MapWidth, Game.MapHeight, Game.MapLength };
 
             int[] targetcoord = new int[] { 0, 0, 0 };
             for (int i = 0; i < 3; i++) targetcoord[i] = SpecialMath.Modulus(coord[i] + timcoord[i], limits[i]);
-            #endregion
 
-            #region Interaction:ModeSwitch
+            // big switch part
             bool ARM = false; // if right arm or left arm
             float fARM = nn.neurons[nPtr].value; nPtr++;
             bool AI = false; // attack or interact
@@ -254,7 +256,7 @@ namespace TimWorld
                     }
                     break;
 
-                case false: // interact // still has TODO
+                case false: // interact
                     // evaluate operand
                     byte operand = 0;
                     operand = SpecialMath.FloatToByte(new float[4] { nn.neurons[nPtr].value, nn.neurons[nPtr + 1].value, nn.neurons[nPtr + 2].value, nn.neurons[nPtr + 3].value });
@@ -415,7 +417,68 @@ namespace TimWorld
 
             //*movement: move_left, move_right, move_forward, move_backward, jump
 
-            // transform from relative to global
+            #region Movement
+            // evaluate moveLeft, moveRight, moveFoward, moveBackward and jump
+            float moveLeft      = nn.neurons[nPtr].value; nPtr++;
+            float moveRight     = nn.neurons[nPtr].value; nPtr++;
+            float moveForward   = nn.neurons[nPtr].value; nPtr++;
+            float moveBackward  = nn.neurons[nPtr].value; nPtr++;
+            float jump         = nn.neurons[nPtr].value;
+            bool  bJump          = true && jump >= 0;
+            bool  moveSide      = true && moveLeft > moveRight;
+            bool  moveStraight  = true && moveForward > moveBackward;
+            bool  bMoveSide     = (true && moveLeft >= 0) ^ (true && moveRight >= 0);
+            bool  bMoveStraight = (true && moveForward >= 0) ^ (true && moveBackward >= 0);
+
+            // TODO jumping
+            if (bJump) // jump
+            {
+                // level 1 jump
+
+                // level 2 jump
+            }
+
+            // horizontal movement
+            DIR movementDir = dir;
+
+            if (bMoveStraight && !moveStraight) // alpha flip (0)
+            {
+                switch (movementDir)
+                {
+                    case DIR.NORTH:
+                        movementDir = DIR.SOUTH;
+                        break;
+
+                    case DIR.SOUTH:
+                        movementDir = DIR.NORTH;
+                        break;
+
+                    case DIR.EAST:
+                        movementDir = DIR.WEST;
+                        break;
+
+                    case DIR.WEST:
+                        movementDir = DIR.EAST;
+                        break;
+                }
+            }
+
+            int[] alpha = new int[] { 0, 0, 0 }; // no offset
+            if (bMoveStraight) alpha = Extra.MovementDirectionToCoordinate(movementDir); // alpha coordinate (1)
+
+            if (bMoveSide) movementDir = Extra.DirectionCycle(movementDir, moveSide); // beta cycle (2)
+
+            int[] beta  = new int[] { 0, 0, 0 }; // no offset
+            if (bMoveSide) beta = Extra.MovementDirectionToCoordinate(movementDir); // beta coordinate (3)
+
+            int[] final = new int[] { 0, 0, 0 }; // initializing
+            for (int i = 0; i < 3; i++) final[i] = alpha[i] + beta[i]; // final result (unofficial 4)
+
+            if (Game.map[final[0], final[1], final[2]] != 0) // can move
+            {
+                x = final[0]; z = final[2];
+            }
+            #endregion
         }
 
         public void UpdateState()

@@ -1,2 +1,2 @@
 # TimWorld
-A virtual world with "tim" agents that should learn and evolve. 
+A virtual enviorment for neural net agents(tims) to evolve in.

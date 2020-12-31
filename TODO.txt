@@ -1,16 +1,19 @@
 ﻿TODO:
-- Tim           | Done | TODO communication and general I/O
+- Tim           | Done | TODO Neural I/O
 - Extra         | Done
-- Screen(class) | TODO(refresh option)
-- Screen(usage) | TODO(display map) (requires additional input thread)
+- Screen(class) | Done
+- Screen(usage) | TODO(display map) (requires additional input thread(Consol))
 - NN            | Done
 - Game          | Half Done (missing game loop and I/O)
 
 Stage 2 TODO:
 - World Generation | Done (basic generation)
-- Neural I/O       | In Process 1 (D:)
+- Neural I/O       | In Process 1 (D:) ALMOST DONE ! (:D)
 
 Future TODO:
 - Consol(class)
 - Consol(usage)
 - Error Handling
+- DayNight Cycle
+- Pigs and Zombies
+- Perlin Noise World Generation
