@@ -8,6 +8,9 @@ namespace TimWorld
         public float hp, mp;
         public float reproductiveUrge;
         public float reproductiveCounter;
+        public int fall;
+        public bool falling;
+        public bool dead;
 
         public enum DIR
         {
@@ -35,6 +38,7 @@ namespace TimWorld
             hp = Hp; mp = Mp;
             reproductiveUrge = 64.0f; reproductiveCounter = 0.0f;
             left = Left; right = Right;
+            fall = 0; falling = false;
         }
 
         public void PickUp(Items.Item item)
@@ -91,11 +95,11 @@ namespace TimWorld
         }
 
         // Tim's working neurons' order: ear, 64*(4)eyes, 6*(4)hairs, turn_left, turn_right, turn_up, turn_down, arm1/arm2, attack/interact, operand, mouth, move forward, move backward, move left, move right, jump.
-        // TOADD entity system: pig and zombie
-        // TOADD daynight cycle
 
         public void CalculateState()
         {
+            // BIG BAD TODO make all update happen in UpdateState()
+
             int nPtr = 0;
             //*sensing: ear, 64*(4)eyes, 6*(4)hairs
             // TODO ear
@@ -162,6 +166,7 @@ namespace TimWorld
             subdir = Extra.SubDirectionCycle(subdir, true && turn_UD >= 0);
             #endregion
 
+            // TODO dropping / special grabbing
             #region Interaction
             // evaluate coord
             int[] coord = Extra.DirectionToCoordinate(dir, subdir);
@@ -433,9 +438,11 @@ namespace TimWorld
             // TODO jumping
             if (bJump) // jump
             {
-                // level 1 jump
-
-                // level 2 jump
+                if (Game.map[x, SpecialMath.Modulus(y + 1, Game.MapHeight), z] == (byte)Blocks.Block.Air) // atleast level 1
+                {
+                    if (Game.map[x, SpecialMath.Modulus(y + 2, Game.MapHeight), z] == (byte)Blocks.Block.Air) y = SpecialMath.Modulus(y + 2, Game.MapHeight); // level 2
+                    else y = SpecialMath.Modulus(y + 1, Game.MapHeight); // level 1
+                }
             }
 
             // horizontal movement
@@ -477,6 +484,34 @@ namespace TimWorld
             if (Game.map[final[0], final[1], final[2]] != 0) // can move
             {
                 x = final[0]; z = final[2];
+            }
+            #endregion
+
+            //*extra
+
+            #region Gravity
+            if (Game.map[x, SpecialMath.Modulus(y - 1, Game.MapHeight), z] == (byte)Blocks.Block.Air) // can fall
+            {
+                y = SpecialMath.Modulus(y - 1, Game.MapHeight); // fall
+                fall++;
+                falling = true;
+            }
+            else // on ground
+            {
+                if (falling) // just landed
+                {
+                    falling = false;
+                    hp -= fall > 2 ? fall - 2 : 0;
+                }
+            }
+            #endregion
+
+            #region DeathCheck
+            if (hp <= 0) // died
+            {
+                dead = true;
+                // remove from tims
+                Game.tims.Remove(this);
             }
             #endregion
         }
